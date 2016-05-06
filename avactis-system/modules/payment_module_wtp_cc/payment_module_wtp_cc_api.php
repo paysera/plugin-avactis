@@ -306,40 +306,18 @@ class Payment_Module_Wtp_CC extends pm_sm_api {
         catch (WebToPayException $e) {
             echo get_class($e).': '.$e->getMessage();
         }
-        
+                
         $acceptURL 		= str_replace('&amp;','&',$buildRequest['accepturl']);
 		$cancelURL 		= str_replace('&amp;','&',$buildRequest['cancelurl']);
 		$callbackURL 	= str_replace('&amp;','&',$buildRequest['callbackurl']);
-        
-        
+
+
         $confirmationData = array(
                 "FormAction" => WebToPay::PAY_URL,
                 "FormMethod" => "POST",
                 "DataFields" => array(
-        				'projectid' 	=> $buildRequest['projectid'],
-        				'orderid'		=> $buildRequest['orderid'],
-        				
-        				'amount'		=> $buildRequest['amount'],
-        				'currency'		=> $buildRequest['currency'],
-        				'lang'			=> $buildRequest['lang'],
-        
-        				'accepturl' 	=> $buildRequest['accepturl'],
-        				'cancelurl' 	=> $buildRequest['cancelurl'],
-        				'callbackurl' 	=> $buildRequest['callbackurl'],
-        
-        				'payment'		=> $buildRequest['payment'],
-        				'country'		=> $buildRequest['country'],
-
-        				'p_firstname'   => $buildRequest['p_firstname'],
-	                    'p_lastname'    => $buildRequest['p_lastname'],
-	                    'p_email'       => $buildRequest['p_email'],
-	                    'p_street'      => $buildRequest['p_street'],
-	                    'p_city'        => $buildRequest['p_city'],
-	                    'p_zip'         => $buildRequest['p_zip'],
-        
-        				'test'			=> $buildRequest['test'],
-        				'version'		=> $buildRequest['version'],
-        				'sign'			=> $buildRequest['sign'],
+        				'data' 	=> $buildRequest['data'],
+        				'sign'		=> $buildRequest['sign'],
                     ));
                     
     //=========================== logging request ========================
@@ -369,9 +347,11 @@ class Payment_Module_Wtp_CC extends pm_sm_api {
         // The checking on the delivery to the selected place might be
         // added here
         //
-        
-        if($_GET[WebToPay::PREFIX.'status'] == 1) {
-        	$this->validateOrder($order_id);
+
+        $moduleData	= $this->getSettings();
+        $data = WebToPay::validateAndParseData($_GET, $moduleData['MODULE_METHOD_ID'], $moduleData['MODULE_METHOD_PASS']);
+        if($data['status'] == 1){
+            $this->validateOrder($data, $data['orderid']);
         }
 
         $EventType = "ConfirmationSuccess";
@@ -383,9 +363,9 @@ class Payment_Module_Wtp_CC extends pm_sm_api {
         return array("EventType" => $EventType, "statusChanged" => $result);
     }
     
-    function validateOrder($orderID){
+    function validateOrder($data, $orderID){
     	
-    	if(ltrim($_GET[WebToPay::PREFIX.'orderid'], "0") != $orderID) {
+    	if(ltrim($data['orderid'], "0") != $orderID) {
     		exit('Order ID mismatch!');	
     	}
     	
@@ -398,21 +378,11 @@ class Payment_Module_Wtp_CC extends pm_sm_api {
         $query->addSelectField('*');
         $query->WhereValue('order_id', DB_EQ, $orderID);
         $Order	= $application->db->getDB_Result($query);
-        
-	    try {
-	        WebToPay::toggleSS2(true);
-	        $response = WebToPay::checkResponse($_GET, array(
-		        'projectid'     => $moduleData['MODULE_METHOD_ID'],
-		        'sign_password' => $moduleData['MODULE_METHOD_PASS'],
-	    	));
-	    } catch (Exception $e) {
-	        exit(get_class($e).': '.$e->getMessage());
-	    }
-	    
-    	if (intval(number_format($Order[0]['order_total'],2,'','')) > $_GET[WebToPay::PREFIX.'amount']){
+        	    
+    	if (intval(number_format($Order[0]['order_total'],2,'','')) > $data['amount']){
     		exit('Bad amount!');
     	}
-    	else if ($Order[0]['currency_code'] != $_GET[WebToPay::PREFIX.'currency']){
+    	else if ($Order[0]['currency_code'] != $data['currency']){
     		exit('Bad currency!');
     	} else {
             modApiFunc("Checkout", "UpdatePaymentStatusInDB", $orderID, 2, 'Payment accepted.');

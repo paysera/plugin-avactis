@@ -5,7 +5,7 @@ INSERT INTO `asc_module` (`module_name`, `module_groups`, `module_description`, 
 ('Payment_Module_Wtp_CC', 'PaymentModule,OnlineCC', '"Paysera" method payment module. See payment documentation', '0.1', 'EVP International', '', '', '2011-04-27', '1', '1');
 
 INSERT INTO `asc_module_class` (`module_class_name`, `module_class_file`, `module_class_type`, `module_class_active`) VALUES
-('Payment_Module_Wtp_CC', 'payment_module_wtp_cc/payment_module_wtp_cc_api.php', 'api', '1');
+('Payment_Module_Wtp_CC', '/avactis-system/modules/payment_module_wtp_cc/payment_module_wtp_cc_api.php', 'api', '1');
 
 INSERT INTO `asc_checkout_pm_sm_currency_acceptance_rules` (`checkout_pm_sm_currency_acceptance_rules_module_id`, `checkout_pm_sm_currency_acceptance_rules_rule_name`, `checkout_pm_sm_currency_acceptance_rules_rule_selected`) VALUES
 ('F2A8C192-7C29-7218-B135-285582382EF6', 'MAIN_STORE_CURRENCY', 'true');
@@ -43,3 +43,17 @@ INSERT INTO `asc_resource_labels` (`res_prefix`, `res_label`, `res_text`) VALUES
 ('PM_WTP', 'MODULE_STATUS_FIELD_NAME', 'Module status'),
 ('PM_WTP', 'MODULE_STATUS_FIELD_NAME_DESCR', 'There are two possible statuses for this module - active and inactive'),
 ('PM_WTP', 'MODULE_TYPE', 'Payment Module');
+
+CREATE TABLE IF NOT EXISTS `asc_pm_wtp_settings` (
+  `pm_wtp_setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `pm_wtp_setting_key` varchar(50) DEFAULT NULL,
+  `pm_wtp_setting_value` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`pm_wtp_setting_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=5 ;
+
+
+INSERT INTO `asc_pm_wtp_settings` (`pm_wtp_setting_id`, `pm_wtp_setting_key`, `pm_wtp_setting_value`) VALUES
+(1, 'MODULE_NAME', 's:7:"Paysera";'),
+(2, 'MODULE_MODE', 's:1:"1";'),
+(3, 'MODULE_METHOD_ID', 's:5:"project_id";'),
+(4, 'MODULE_METHOD_PASS', 's:32:"project_password";');
